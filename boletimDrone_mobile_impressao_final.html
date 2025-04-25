@@ -54,74 +54,12 @@
       margin-top: 20px;
     }
 
-    
-@media print {
-  body {
-    zoom: 90%;
-    background-color: white;
-    color: black;
-  }
-
-  .no-print,
-  .form-container button,
-  .form-container input[type="button"],
-  .form-container input[type="submit"],
-  .form-container input[type="reset"] {
-    display: none !important;
-  }
-
-  label {
-    display: none !important;
-  }
-
-  .form-container {
-    border: 1px solid #000;
-    margin-bottom: 20px;
-    padding: 10px;
-    page-break-inside: avoid;
-  }
-
-  input, select {
-    border: none;
-    background-color: transparent;
-    color: black;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 0;
-  }
-
-  input::before, select::before {
-    content: attr(value);
-    color: black;
-  }
-
-  .form-op {
-    display: block;
-  }
-
-  .info-geral,
-  .linha-centro,
-  .linha-horimetro {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-
-  .info-geral > *,
-  .linha-centro > *,
-  .linha-horimetro > * {
-    flex: 1;
-    min-width: 100px;
-    padding: 4px;
-    border: 1px solid #ccc;
-  }
-
-  .form-container:not(:first-of-type) .info-geral {
-    display: none !important;
-  }
-}
-
+    @media print {
+      body {
+        zoom: 90%;
+        background-color: white;
+        color: black;
+      }
 
       .no-print, button, input[type="button"], input[type="submit"], input[type="reset"] {
         display: none !important;
@@ -138,7 +76,40 @@
         page-break-inside: avoid;
       }
     }
-  </style>
+  
+#print-area {
+  display: none;
+}
+
+@media print {
+  body {
+    zoom: 90%;
+  }
+  form, .no-print, .form-container {
+    display: none !important;
+  }
+  #print-area {
+    display: block;
+    margin: 20px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+  }
+  th, td {
+    border: 1px solid #000;
+    padding: 6px;
+    text-align: center;
+  }
+  caption {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+}
+</style>
 </head>
 <body>
   <h2>Boletim de Operações</h2>
@@ -211,9 +182,7 @@
         </select>
 
         <button type="button" onclick="mostrarCentroCusto()">Mostrar Centro de Custo</button>
-        </div>
-<div class="linha-centro">
-<div id="resultado"></div>
+        <div id="resultado"></div>
 
         <label>Campo:</label>
         <input type="text" name="campo" required>
@@ -227,9 +196,7 @@
         <label>Hora Final:</label>
         <input type="time" name="hora_final" required>
 
-        </div>
-<div class="linha-horimetro">
-<label>Horímetro Inicial:</label>
+        <label>Horímetro Inicial:</label>
         <input type="text" name="horimetro_inicial" required>
 
         <label>Horas Operadas:</label>
@@ -253,7 +220,8 @@
 
   <div class="no-print">
     <button onclick="inserirNovaOperacao()">Inserir Nova Operação</button>
-    <button onclick="window.print()">Salvar em PDF</button>
+    <button onclick="gerarTabela()">Salvar em PDF</button>
+
   </div>
 
   <script>
@@ -316,5 +284,89 @@
       window.history.back();
     }
   </script>
+
+
+<div id="print-area"></div>
+
+<script>
+  function gerarTabela() {
+    const get = name => document.getElementsByName(name)[0]?.value || '';
+
+    const tabela = `
+      <table>
+        <caption>Boletim de Atividades Mecanizadas</caption>
+        <tr>
+          <td><strong>Nome do Operador</strong><br>${get('operador')}</td>
+          <td><strong>Data</strong><br>${get('data')}</td>
+          <td><strong>Matrícula</strong><br>${get('matricula')}</td>
+          <td><strong>Equipamento</strong><br>${get('equipamento')}</td>
+          <td><strong>Turno</strong><br>${get('turno')}</td>
+          <td><strong>Horas Operadas</strong><br>${get('horas_operadas')}</td>
+        </tr>
+        <tr>
+          <td><strong>Centro de Custo</strong><br>${get('centroCusto')}</td>
+          <td><strong>Operação</strong><br>${get('operacao')}</td>
+          <td><strong>Hora Inicial</strong><br>${get('horaInicial')}</td>
+          <td><strong>Hora Final</strong><br>${get('horaFinal')}</td>
+          <td><strong>Campo</strong><br>${get('campo')}</td>
+          <td><strong>Hectares</strong><br>${get('hectares')}</td>
+        </tr>
+        <tr>
+          <td colspan="3"><strong>Horímetro Inicial</strong><br>${get('horimetroInicial')}</td>
+          <td colspan="3"><strong>Horímetro Final</strong><br>${get('horimetroFinal')}</td>
+        </tr>
+      </table>`;
+
+    document.getElementById("print-area").innerHTML = tabela;
+    window.print();
+  }
+</script>
+<div id="print-area"></div>
+
+<script>
+  function gerarTabela() {
+    const containers = document.querySelectorAll(".form-container");
+    let tabelas = '';
+
+    containers.forEach((container, index) => {
+      const get = name => container.querySelector(`[name="${name}"]`)?.value || '';
+      const getById = id => container.querySelector(`#${id}`)?.value || '';
+      const centroCusto = container.querySelector("#resultado")?.innerText || '';
+
+      const tabela = `
+        <table style="margin-bottom: 30px;">
+          <caption>Boletim de Atividades Mecanizadas - Operação ${index + 1}</caption>
+          <tr>
+            <td><strong>Nome do Operador</strong><br>${get("operador")}</td>
+            <td><strong>Data</strong><br>${get("data")}</td>
+            <td><strong>Matrícula</strong><br>${get("matricula")}</td>
+            <td><strong>Equipamento</strong><br>${get("equipamento")}</td>
+            <td><strong>Turno</strong><br>${get("turno")}</td>
+            <td><strong>Horas Operadas</strong><br>${get("horas_operadas")}</td>
+          </tr>
+          <tr>
+            <td><strong>Centro de Custo</strong><br>${centroCusto.replace("Centro de Custo:", "").trim()}</td>
+            <td><strong>Operação</strong><br>${getById("operacao")}</td>
+            <td><strong>Hora Inicial</strong><br>${get("hora_inicial")}</td>
+            <td><strong>Hora Final</strong><br>${get("hora_final")}</td>
+            <td><strong>Campo</strong><br>${get("campo")}</td>
+            <td><strong>Hectares</strong><br>${get("hectares")}</td>
+          </tr>
+          <tr>
+            <td colspan="3"><strong>Horímetro Inicial</strong><br>${get("horimetro_inicial")}</td>
+            <td colspan="3"><strong>Horímetro Final</strong><br>${get("horimetro_final")}</td>
+          </tr>
+        </table>`;
+      tabelas += tabela;
+    });
+
+    document.getElementById("print-area").innerHTML = tabelas;
+    window.print();
+  }
+</script>
+
 </body>
-</html>
+
+
+  </html>
+  
