@@ -5,7 +5,7 @@ self.addEventListener('install', function(e) {
         '/',
         '/index.html',
         '/manifest.json',
-        '/boletimDrone_mobile.html',
+        '/boletimDrone_mobile_impressao_final.html',
         '/icon.png'
       ]);
     })
