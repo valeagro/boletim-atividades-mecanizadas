@@ -3,32 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Boletim de Atividades Mecanizadas</title>
+  <title>Boletim de Operações</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4CAF50"/>
+  <link rel="icon" href="icon.png">
+  <meta name="theme-color" content="#003366">
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       padding: 20px;
+      background-color: #f0f0f0;
     }
-
-    #installBtn {
-      display: none;
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 10px 16px;
-      background-color: #4CAF50;
+    h2 {
+      text-align: center;
+      color: #003366;
+    }
+    .form-container {
+      background-color: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px 0 0;
+      background-color: #003366;
       color: white;
       border: none;
       border-radius: 5px;
-      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005599;
+    }
+    .no-print {
+      margin-top: 20px;
+    }
+    @media print {
+      body {
+        zoom: 90%;
+        background-color: white;
+        color: black;
+      }
+      .no-print, button, input[type="button"], input[type="submit"], input[type="reset"] {
+        display: none !important;
+      }
+      input, select {
+        border: none;
+        background-color: transparent;
+      }
+      .form-container {
+        border: 1px solid #000;
+        margin-bottom: 20px;
+        page-break-inside: avoid;
+      }
+    }
+    #print-area {
+      display: none;
+    }
+    @media print {
+      form, .no-print, .form-container {
+        display: none !important;
+      }
+      #print-area {
+        display: block;
+        margin: 20px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+      }
+      th, td {
+        border: 1px solid #000;
+        padding: 6px;
+        text-align: center;
+      }
+      caption {
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Boletim de Atividades Mecanizadas</h1>
-
   <h2>Boletim de Operações</h2>
 
   <div id="operacoes-area">
@@ -37,7 +107,7 @@
         <div class="info-geral">
           <label>Nome do Operador:</label>
           <input type="text" name="operador" required>
-          
+
           <label>Matrícula:</label> 
           <input type="text" name="matricula" required>
 
@@ -138,8 +208,9 @@
   <div class="no-print">
     <button onclick="inserirNovaOperacao()">Inserir Nova Operação</button>
     <button onclick="gerarTabela()">Salvar em PDF</button>
-
   </div>
+
+  <div id="print-area"></div>
 
   <script>
     const centroCusto = {
@@ -200,123 +271,54 @@
     function voltar() {
       window.history.back();
     }
+
+    function gerarTabela() {
+      const containers = document.querySelectorAll(".form-container");
+      let tabelas = '';
+
+      containers.forEach((container, index) => {
+        const get = name => container.querySelector(`[name="${name}"]`)?.value || '';
+        const getById = id => container.querySelector(`#${id}`)?.value || '';
+        const centroCusto = container.querySelector("#resultado")?.innerText || '';
+
+        const tabela = `
+          <table style="margin-bottom: 30px;">
+            <caption>Boletim de Atividades Mecanizadas - Operação ${index + 1}</caption>
+            <tr>
+              <td><strong>Nome do Operador</strong><br>${get("operador")}</td>
+              <td><strong>Data</strong><br>${get("data")}</td>
+              <td><strong>Matrícula</strong><br>${get("matricula")}</td>
+              <td><strong>Equipamento</strong><br>${get("equipamento")}</td>
+              <td><strong>Turno</strong><br>${get("turno")}</td>
+              <td><strong>Horas Operadas</strong><br>${get("horas_operadas")}</td>
+            </tr>
+            <tr>
+              <td><strong>Centro de Custo</strong><br>${centroCusto.replace("Centro de Custo:", "").trim()}</td>
+              <td><strong>Operação</strong><br>${getById("operacao")}</td>
+              <td><strong>Hora Inicial</strong><br>${get("hora_inicial")}</td>
+              <td><strong>Hora Final</strong><br>${get("hora_final")}</td>
+              <td><strong>Campo</strong><br>${get("campo")}</td>
+              <td><strong>Hectares</strong><br>${get("hectares")}</td>
+            </tr>
+            <tr>
+              <td colspan="3"><strong>Horímetro Inicial</strong><br>${get("horimetro_inicial")}</td>
+              <td colspan="3"><strong>Horímetro Final</strong><br>${get("horimetro_final")}</td>
+            </tr>
+          </table>`;
+        tabelas += tabela;
+      });
+
+      document.getElementById("print-area").innerHTML = tabelas;
+      window.print();
+    }
   </script>
 
-
-<div id="print-area"></div>
-
-<script>
-  function gerarTabela() {
-    const get = name => document.getElementsByName(name)[0]?.value || '';
-
-    const tabela = `
-      <table>
-        <caption>Boletim de Atividades Mecanizadas</caption>
-        <tr>
-          <td><strong>Nome do Operador</strong><br>${get('operador')}</td>
-          <td><strong>Data</strong><br>${get('data')}</td>
-          <td><strong>Matrícula</strong><br>${get('matricula')}</td>
-          <td><strong>Equipamento</strong><br>${get('equipamento')}</td>
-          <td><strong>Turno</strong><br>${get('turno')}</td>
-          <td><strong>Horas Operadas</strong><br>${get('horas_operadas')}</td>
-        </tr>
-        <tr>
-          <td><strong>Centro de Custo</strong><br>${get('centroCusto')}</td>
-          <td><strong>Operação</strong><br>${get('operacao')}</td>
-          <td><strong>Hora Inicial</strong><br>${get('horaInicial')}</td>
-          <td><strong>Hora Final</strong><br>${get('horaFinal')}</td>
-          <td><strong>Campo</strong><br>${get('campo')}</td>
-          <td><strong>Hectares</strong><br>${get('hectares')}</td>
-        </tr>
-        <tr>
-          <td colspan="3"><strong>Horímetro Inicial</strong><br>${get('horimetroInicial')}</td>
-          <td colspan="3"><strong>Horímetro Final</strong><br>${get('horimetroFinal')}</td>
-        </tr>
-      </table>`;
-
-    document.getElementById("print-area").innerHTML = tabela;
-    window.print();
-  }
-</script>
-<div id="print-area"></div>
-
-<script>
-  function gerarTabela() {
-    const containers = document.querySelectorAll(".form-container");
-    let tabelas = '';
-
-    containers.forEach((container, index) => {
-      const get = name => container.querySelector(`[name="${name}"]`)?.value || '';
-      const getById = id => container.querySelector(`#${id}`)?.value || '';
-      const centroCusto = container.querySelector("#resultado")?.innerText || '';
-
-      const tabela = `
-        <table style="margin-bottom: 30px;">
-          <caption>Boletim de Atividades Mecanizadas - Operação ${index + 1}</caption>
-          <tr>
-            <td><strong>Nome do Operador</strong><br>${get("operador")}</td>
-            <td><strong>Data</strong><br>${get("data")}</td>
-            <td><strong>Matrícula</strong><br>${get("matricula")}</td>
-            <td><strong>Equipamento</strong><br>${get("equipamento")}</td>
-            <td><strong>Turno</strong><br>${get("turno")}</td>
-            <td><strong>Horas Operadas</strong><br>${get("horas_operadas")}</td>
-          </tr>
-          <tr>
-            <td><strong>Centro de Custo</strong><br>${centroCusto.replace("Centro de Custo:", "").trim()}</td>
-            <td><strong>Operação</strong><br>${getById("operacao")}</td>
-            <td><strong>Hora Inicial</strong><br>${get("hora_inicial")}</td>
-            <td><strong>Hora Final</strong><br>${get("hora_final")}</td>
-            <td><strong>Campo</strong><br>${get("campo")}</td>
-            <td><strong>Hectares</strong><br>${get("hectares")}</td>
-          </tr>
-          <tr>
-            <td colspan="3"><strong>Horímetro Inicial</strong><br>${get("horimetro_inicial")}</td>
-            <td colspan="3"><strong>Horímetro Final</strong><br>${get("horimetro_final")}</td>
-          </tr>
-        </table>`;
-      tabelas += tabela;
-    });
-
-    document.getElementById("print-area").innerHTML = tabelas;
-    window.print();
-  }
-</script>
-
-  <!-- Botão de instalação -->
-<button id="installBtn" style="display: none; position: fixed; bottom: 20px; right: 20px; padding: 10px 16px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-weight: bold;">Instalar App</button>
-
-<!-- Registro do Service Worker -->
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(reg => console.log('Service Worker registrado'))
-      .catch(err => console.error('Erro ao registrar o SW:', err));
-  }
-</script>
-
-<!-- Script do botão de instalação -->
-<script>
-  let deferredPrompt;
-  const installBtn = document.getElementById('installBtn');
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installBtn.style.display = 'block';
-
-    installBtn.addEventListener('click', () => {
-      installBtn.style.display = 'none';
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('Usuário aceitou a instalação');
-        } else {
-          console.log('Usuário recusou a instalação');
-        }
-        deferredPrompt = null;
-      });
-    });
-  });
-</script>
-
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker registrado!'))
+        .catch(err => console.error('Erro ao registrar Service Worker:', err));
+    }
+  </script>
+</body>
 </html>
