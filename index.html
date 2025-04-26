@@ -283,40 +283,40 @@
 </script>
 
   <!-- Botão de instalação -->
-  <button id="installBtn">Instalar App</button>
+<button id="installBtn" style="display: none; position: fixed; bottom: 20px; right: 20px; padding: 10px 16px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-weight: bold;">Instalar App</button>
 
-  <!-- Service Worker -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log('Service Worker registrado'))
-        .catch(err => console.error('Erro ao registrar o SW:', err));
-    }
-  </script>
+<!-- Registro do Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('Service Worker registrado'))
+      .catch(err => console.error('Erro ao registrar o SW:', err));
+  }
+</script>
 
-  <!-- Script de instalação -->
-  <script>
-    let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
+<!-- Script do botão de instalação -->
+<script>
+  let deferredPrompt;
+  const installBtn = document.getElementById('installBtn');
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = 'block';
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
 
-      installBtn.addEventListener('click', () => {
-        installBtn.style.display = 'none';
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            console.log('Usuário aceitou a instalação');
-          } else {
-            console.log('Usuário recusou a instalação');
-          }
-          deferredPrompt = null;
-        });
+    installBtn.addEventListener('click', () => {
+      installBtn.style.display = 'none';
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('Usuário aceitou a instalação');
+        } else {
+          console.log('Usuário recusou a instalação');
+        }
+        deferredPrompt = null;
       });
     });
-  </script>
-</body>
+  });
+</script>
+
 </html>
