@@ -1,18 +1,13 @@
 {
-  "name": "Boletim de Atividades Mecanizadas",
+  "name": "Boletim de Operações",
   "short_name": "Boletim Drone",
-  "start_url": "./index.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#4CAF50",
+  "theme_color": "#003366",
   "icons": [
     {
       "src": "icon.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
