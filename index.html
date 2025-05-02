@@ -7,6 +7,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.png">
   <meta name="theme-color" content="#003366">
+  <script type="module" src="firebase.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -211,6 +212,58 @@
   </div>
 
   <div id="print-area"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const forms = document.querySelectorAll(".form-op");
+
+      forms.forEach(form => {
+        const dataInput = form.querySelector('[name="data"]');
+        const turnoSelect = form.querySelector('[name="turno"]');
+        const equipamentoSelect = form.querySelector('[name="equipamento"]');
+        const horimetroInicial = form.querySelector('[name="horimetro_inicial"]');
+
+        async function atualizarHorimetroInicial() {
+          const data = dataInput.value;
+          const turno = turnoSelect.value;
+          const equipamento = equipamentoSelect.value;
+
+          if (data && turno && equipamento && window.db) {
+            const dataAnterior = new Date(data);
+            dataAnterior.setDate(dataAnterior.getDate() - (turno === '1º Turno' ? 1 : 0));
+            const dataStr = dataAnterior.toISOString().split('T')[0];
+            const turnoAnterior = getTurnoAnterior(turno);
+            const docRef = doc(db, "horimetros", `${dataStr}_${equipamento}_${turnoAnterior}`);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              horimetroInicial.value = docSnap.data().horimetro_final;
+            }
+          }
+        }
+
+        dataInput.addEventListener("change", atualizarHorimetroInicial);
+        turnoSelect.addEventListener("change", atualizarHorimetroInicial);
+        equipamentoSelect.addEventListener("change", atualizarHorimetroInicial);
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const horFinal = form.querySelector('[name="horimetro_final"]').value;
+          const data = form.querySelector('[name="data"]').value;
+          const turno = form.querySelector('[name="turno"]').value;
+          const equipamento = form.querySelector('[name="equipamento"]').value;
+
+          if (horFinal && data && turno && equipamento && window.db) {
+            const id = `${data}_${equipamento}_${turno}`;
+            await setDoc(doc(db, "horimetros", id), {
+              horimetro_final: horFinal
+            });
+            alert("Boletim salvo com sucesso!");
+            form.reset();
+          }
+        });
+      });
+    });
+  </script>
 
   <script>
     const centroCusto = {
