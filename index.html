@@ -100,6 +100,61 @@
   </style>
 </head>
 <body>
+  <script>
+async function salvarHorimetro() {
+    const equipamento = document.querySelector('select[name="equipamento"]').value;
+    const turno = document.querySelector('select[name="turno"]').value;
+    const horimetro = document.querySelector('input[name="horimetro_final"]').value;
+    const data = new Date().toISOString().split('T')[0];
+
+    if (!equipamento || !turno || !horimetro) {
+        alert('Preencha todos os campos antes de salvar.');
+        return;
+    }
+
+    const token = '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';
+    const repo = 'valeagro/boletim-atividades-mecanizadas';
+    const filePath = 'horimetros.json';
+
+    const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+
+    const response = await fetch(url, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github.v3+json',
+        }
+    });
+
+    let content = [];
+    let sha = null;
+
+    if (response.ok) {
+        const json = await response.json();
+        sha = json.sha;
+        content = JSON.parse(atob(json.content));
+    }
+
+    content.push({ equipamento, turno, horimetro, data });
+
+    const updatedContent = btoa(JSON.stringify(content, null, 2));
+
+    await fetch(url, {
+        method: 'PUT',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github.v3+json',
+        },
+        body: JSON.stringify({
+            message: `Salvar horímetro - ${equipamento} - ${data}`,
+            content: updatedContent,
+            sha: sha,
+        }),
+    });
+
+    alert('Horímetro salvo com sucesso!');
+}
+</script>
+
   <h2>Boletim de Operações</h2>
 
   <div id="operacoes-area">
@@ -194,6 +249,7 @@
 
         <label>Horímetro Final (calculado):</label>
         <input type="text" name="horimetro_final" readonly>
+        <button type="button" onclick="salvarHorimetro()">Salvar Horímetro Final</button>
 
         <div class="buttons">
           <button type="button" onclick="calcularHorimetro()">Calcular Horímetro Final</button>
