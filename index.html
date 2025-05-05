@@ -153,6 +153,8 @@
           <option value="489">489 - POS EMERGEN RUAS E CANAIS AEREA C/ DRONE</option>
           <option value="490">490 - CULTIVO MINIMO AEREA C/ DRONE</option>
           <option value="491">491 - ERRADICAÇÃO DE ERVAS PERENES AEREA C/ DRONE</option>
+          <option value="560">560 - APLICAÇÃO COTESIA</option>
+          <option value="561">561 - APLICAÇÃO TRICOGRAMA</option>
           <option value="564">564 - FOLIAR E INSETICIDA PULGÃO</option>
           <option value="565">565 - FOLIAR E INSETICIDA CIGARRINHA</option>
           <option value="566">566 - FOLIAR E INSETICIDA DIATRÉIA</option>
@@ -279,6 +281,8 @@
       "489": { planta: "1635", soca: "1636" },
       "490": { planta: "1635", soca: "1636" },
       "491": { planta: "1635", soca: "1636" },
+      "560": { planta: "2517", soca: "2518" },
+      "561": { planta: "2517", soca: "2518" },
       "564": { planta: "2610", soca: "2615" },
       "565": { planta: "2611", soca: "2616" },
       "566": { planta: "2612", soca: "2617" },
@@ -287,6 +291,7 @@
       "946": { planta: "999", soca: "999" },
       "911": { planta: "999", soca: "999" },
       "1029": { planta: "999", soca: "999" }
+      
     };
 
     function mostrarCentroCusto() {
@@ -372,6 +377,107 @@
         .then(() => console.log('Service Worker registrado!'))
         .catch(err => console.error('Erro ao registrar Service Worker:', err));
     }
-  </script>
+  <script>
+  const GITHUB_TOKEN = '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'; // mantenha seguro
+  const REPO = 'valeagro/boletim-atividades-mecanizadas';
+  const FILE_PATH = 'horimetros.json';
+
+  const getDateString = () => {
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+  };
+
+  async function getHorimetros() {
+    const url = `https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`;
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${GITHUB_TOKEN}` }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      const content = atob(data.content);
+      return { json: JSON.parse(content), sha: data.sha };
+    } else if (response.status === 404) {
+      return { json: [], sha: null };
+    } else {
+      console.error('Erro ao buscar dados:', await response.text());
+      return { json: [], sha: null };
+    }
+  }
+
+  async function salvarHorimetroFinal() {
+    const equipamento = document.querySelector('[name="equipamento"]').value;
+    const turno = document.querySelector('[name="turno"]').value;
+    const horimetroFinal = document.querySelector('[name="horimetro_final"]').value;
+    const data = getDateString();
+
+    const { json: registros, sha } = await getHorimetros();
+    registros.push({ equipamento, turno, horimetro: horimetroFinal, data });
+
+    const contentEncoded = btoa(JSON.stringify(registros, null, 2));
+    const url = `https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`;
+
+    const result = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `Atualiza horímetro - ${equipamento} - ${turno} - ${data}`,
+        content: contentEncoded,
+        sha: sha
+      })
+    });
+
+    if (result.ok) {
+      alert('Horímetro final salvo com sucesso!');
+    } else {
+      alert('Erro ao salvar horímetro.');
+    }
+  }
+
+  async function preencherHorimetroInicial() {
+    const equipamento = document.querySelector('[name="equipamento"]').value;
+    const turno = document.querySelector('[name="turno"]').value;
+    const horimetroInicialField = document.querySelector('[name="horimetro_inicial"]');
+    const data = getDateString();
+
+    const { json: registros } = await getHorimetros();
+    const turnos = ['1º turno', '2º turno', '3º turno'];
+    const turnoIndex = turnos.indexOf(turno);
+    if (turnoIndex <= 0) {
+      horimetroInicialField.value = 'Sem dados do turno anterior';
+      return;
+    }
+
+    const turnoAnterior = turnos[turnoIndex - 1];
+    const anterior = registros.find(r =>
+      r.equipamento === equipamento && r.turno === turnoAnterior && r.data === data
+    );
+
+    if (anterior) {
+      horimetroInicialField.value = anterior.horimetro;
+    } else {
+      horimetroInicialField.value = 'Sem dados do turno anterior';
+    }
+  }
+
+  // Executa ao escolher equipamento ou turno
+  document.addEventListener('DOMContentLoaded', () => {
+    const equipamento = document.querySelector('[name="equipamento"]');
+    const turno = document.querySelector('[name="turno"]');
+    if (equipamento && turno) {
+      equipamento.addEventListener('change', preencherHorimetroInicial);
+      turno.addEventListener('change', preencherHorimetroInicial);
+    }
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.innerText = 'Salvar Horímetro Final';
+    btn.onclick = salvarHorimetroFinal;
+    document.forms[0].appendChild(btn);
+  });
+</script>
+
 </body>
 </html>
